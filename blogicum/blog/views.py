@@ -1,5 +1,7 @@
 from django.shortcuts import render
 
+from django.http import Http404
+
 posts = [
     {
         'id': 0,
@@ -45,19 +47,18 @@ posts = [
 
 
 def index(request):
-    reversed_posts = list(reversed(posts))
-    context = {'posts': reversed_posts}
-    return render(request, 'blog/index.html', context)
+    return render(request, 'blog/index.html', {'posts': list(reversed(posts))})
 
 
 def post_detail(request, id):
-    post = next((p for p in posts if p['id'] == id), None)
-    if post is None:
-        return render(request, '404.html', status=404)
-    context = {'post': post}
-    return render(request, 'blog/detail.html', context)
+    post_ids = [post['id'] for post in posts]
+
+    if id not in post_ids:
+        raise Http404(f'Пост с id {id} не найден.')
+
+    post = [p for p in posts if p['id'] == id][0]
+    return render(request, 'blog/detail.html', {'post': post})
 
 
 def category_posts(request, category_slug):
-    context = {'category_slug': category_slug}
-    return render(request, 'blog/category.html', context)
+    return render(request, 'blog/category.html', {'category_slug': category_slug})
